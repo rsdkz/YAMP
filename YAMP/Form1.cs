@@ -50,7 +50,7 @@ namespace YAMP
                 if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     mp3 = new NAudio.Wave.Mp3FileReader(@ofd.FileName);
-                    wo = new NAudio.Wave.WaveOut(this.Handle);
+                    wo = new NAudio.Wave.WaveOut();
 
                     wo.Init(mp3); wo.Play();
 
@@ -129,6 +129,56 @@ namespace YAMP
             {
                 label4.Text = "Replay: ON";
                 ReplayMusic = true;
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    if (wo == null)
+                    {
+
+                    }
+                    else
+                    {
+                        wo.Stop(); wo.Dispose();
+                    }
+
+                    if (mp3 == null)
+                    {
+
+                    }
+                    else
+                    {
+                        mp3.Position = 0; mp3.Dispose();
+                    }
+
+                    System.Threading.Thread.Sleep(500);
+
+                    mp3 = new NAudio.Wave.Mp3FileReader(@ofd.FileName);
+                    wo = new NAudio.Wave.WaveOut();
+
+                    wo.Init(mp3); wo.Play();
+
+                    tag = TagLib.File.Create(@ofd.FileName).Tag;
+                    tagfile = TagLib.File.Create(@ofd.FileName);
+
+                    this.Text = "YAMP - " + tag.Title + " by " + string.Join(", ", tag.Performers);
+                    label1.Text = tag.Title;
+                    label2.Text = string.Join(", ", tag.Performers);
+
+                    if (tag.Pictures.Length > 0)
+                    {
+                        pictureBox1.Image = Image.FromStream(new System.IO.MemoryStream(tag.Pictures[0].Data.Data));
+                    }
+
+                    timer1.Start(); curFile = ofd.FileName; button2.Text = "Pause";
+
+                    System.Diagnostics.Debug.WriteLine("YAMP Debug Info - " + DateTime.Now.ToString() + Environment.NewLine + "File: " + curFile + Environment.NewLine + "Audio Bitrate: " + tagfile.Properties.AudioBitrate + Environment.NewLine + "Audio Channels: " + tagfile.Properties.AudioChannels + Environment.NewLine + "Audio Sample Rate: " + tagfile.Properties.AudioSampleRate + Environment.NewLine + "Bits per Sample: " + tagfile.Properties.BitsPerSample + Environment.NewLine + "Codecs/Description: " + string.Join(", ", tagfile.Properties.Codecs) + " | " + tagfile.Properties.Description);
+                }
             }
         }
     }
