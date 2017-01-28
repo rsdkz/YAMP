@@ -13,13 +13,13 @@ namespace YAMP
 {
     public partial class Form1 : Form
     {
-        public Mp3FileReader mp3;
+        public Mp3FileReader mp3 = null;
         public WaveFileReader wav;
 
         public TagLib.Tag tag;
         public TagLib.File tagfile;
 
-        public WaveOut wo;
+        public WaveOut wo = null;
 
         public string curFile;
 
@@ -49,28 +49,37 @@ namespace YAMP
             {
                 if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    mp3 = new NAudio.Wave.Mp3FileReader(@ofd.FileName);
-                    wo = new NAudio.Wave.WaveOut();
-
-                    wo.Init(mp3); wo.Play();
-
-                    tag = TagLib.File.Create(@ofd.FileName).Tag;
-                    tagfile = TagLib.File.Create(@ofd.FileName);
-
-                    this.Text = "YAMP - " + tag.Title + " by " + string.Join(", ", tag.Performers);
-                    label1.Text = tag.Title;
-                    label2.Text = string.Join(", ", tag.Performers);
-
-                    if (tag.Pictures.Length > 0)
-                    {
-                        pictureBox1.Image = Image.FromStream(new System.IO.MemoryStream(tag.Pictures[0].Data.Data));
-                    }
-
-                    timer1.Start(); curFile = ofd.FileName; button2.Text = "Pause";
-
-                    System.Diagnostics.Debug.WriteLine("YAMP Debug Info - " + DateTime.Now.ToString() + Environment.NewLine + "File: " + curFile + Environment.NewLine + "Audio Bitrate: " + tagfile.Properties.AudioBitrate + Environment.NewLine + "Audio Channels: " + tagfile.Properties.AudioChannels + Environment.NewLine + "Audio Sample Rate: " + tagfile.Properties.AudioSampleRate + Environment.NewLine + "Bits per Sample: " + tagfile.Properties.BitsPerSample + Environment.NewLine + "Codecs/Description: " + string.Join(", ", tagfile.Properties.Codecs) + " | " + tagfile.Properties.Description);
+                    LoadMusicFile(ofd.FileName);
                 }
             }
+        }
+
+        private void LoadMusicFile(string filePath)
+        {
+            timer1.Stop(); timer1.Enabled = false; trackBar1.Value = 0;
+
+            if (wo != null) { wo.Stop(); System.Threading.Thread.Sleep(100); wo.Dispose(); }
+            if (mp3 != null) { mp3.Position = 0; mp3.CurrentTime = TimeSpan.FromSeconds(0); System.Threading.Thread.Sleep(100); mp3.Dispose(); }
+
+            mp3 = new Mp3FileReader(filePath); mp3.Position = 0;
+            wo = new WaveOut();
+
+            wo.Init(mp3); wo.Play(); 
+
+            tag = TagLib.File.Create(@filePath).Tag;
+            tagfile = TagLib.File.Create(@filePath);
+
+            this.Text = "YAMP - " + tag.Title + " by " + string.Join(", ", tag.Performers);
+            label1.Text = tag.Title; label2.Text = string.Join(", ", tag.Performers);
+
+            if (tag.Pictures.Length > 0)
+            {
+                pictureBox1.Image = Image.FromStream(new System.IO.MemoryStream(tag.Pictures[0].Data.Data));
+            }
+
+            timer1.Start(); curFile = filePath; button2.Text = "Pause";
+
+            System.Diagnostics.Debug.WriteLine("YAMP Debug Info - " + DateTime.Now.ToString() + Environment.NewLine + "File: " + curFile + Environment.NewLine + "Audio Bitrate: " + tagfile.Properties.AudioBitrate + Environment.NewLine + "Audio Channels: " + tagfile.Properties.AudioChannels + Environment.NewLine + "Audio Sample Rate: " + tagfile.Properties.AudioSampleRate + Environment.NewLine + "Bits per Sample: " + tagfile.Properties.BitsPerSample + Environment.NewLine + "Codecs/Description: " + string.Join(", ", tagfile.Properties.Codecs) + " | " + tagfile.Properties.Description);
         }
 
         private void trackBar1_Scroll(object sender, EventArgs e)
@@ -138,46 +147,7 @@ namespace YAMP
             {
                 if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    if (wo == null)
-                    {
-
-                    }
-                    else
-                    {
-                        wo.Stop(); wo.Dispose();
-                    }
-
-                    if (mp3 == null)
-                    {
-
-                    }
-                    else
-                    {
-                        mp3.Position = 0; mp3.Dispose();
-                    }
-
-                    System.Threading.Thread.Sleep(500);
-
-                    mp3 = new NAudio.Wave.Mp3FileReader(@ofd.FileName);
-                    wo = new NAudio.Wave.WaveOut();
-
-                    wo.Init(mp3); wo.Play();
-
-                    tag = TagLib.File.Create(@ofd.FileName).Tag;
-                    tagfile = TagLib.File.Create(@ofd.FileName);
-
-                    this.Text = "YAMP - " + tag.Title + " by " + string.Join(", ", tag.Performers);
-                    label1.Text = tag.Title;
-                    label2.Text = string.Join(", ", tag.Performers);
-
-                    if (tag.Pictures.Length > 0)
-                    {
-                        pictureBox1.Image = Image.FromStream(new System.IO.MemoryStream(tag.Pictures[0].Data.Data));
-                    }
-
-                    timer1.Start(); curFile = ofd.FileName; button2.Text = "Pause";
-
-                    System.Diagnostics.Debug.WriteLine("YAMP Debug Info - " + DateTime.Now.ToString() + Environment.NewLine + "File: " + curFile + Environment.NewLine + "Audio Bitrate: " + tagfile.Properties.AudioBitrate + Environment.NewLine + "Audio Channels: " + tagfile.Properties.AudioChannels + Environment.NewLine + "Audio Sample Rate: " + tagfile.Properties.AudioSampleRate + Environment.NewLine + "Bits per Sample: " + tagfile.Properties.BitsPerSample + Environment.NewLine + "Codecs/Description: " + string.Join(", ", tagfile.Properties.Codecs) + " | " + tagfile.Properties.Description);
+                    LoadMusicFile(ofd.FileName);
                 }
             }
         }
